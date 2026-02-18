@@ -12,6 +12,16 @@ jobs:
         timeout-minutes: 120
         steps:
           - uses: actions/checkout@v2
+          - name: Set up SSH for Buildroot package fetch
+            run: |
+              echo "User: $(whoami)"
+              echo "HOME: $HOME"
+              mkdir -p ~/.ssh
+              echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > "$HOME/.ssh/aeld_id_rsa_nopassphrase"
+              chmod 600 ~/.ssh/aeld_id_rsa_nopassphrase
+              ssh-keyscan github.com >> ~/.ssh/known_hosts
+              git config --global core.sshCommand \
+                "ssh -i $HOME/.ssh/aeld_id_rsa_nopassphrase -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=yes"
           - name: Checkout submodules
             run: git submodule update --init --recursive
           - uses: webfactory/ssh-agent@v0.5.3
